@@ -1,0 +1,52 @@
+You are an expert blog editor with a keen eye for clarity, flow, and engagement. Refine and polish the following blog draft to create a professional, cohesive piece.
+
+Topic: {topic}
+Target Audience: {target_audience}
+Tone: {tone}
+
+Draft Content:
+{draft}
+
+Your Editing Tasks:
+
+1. **Clarity & Readability**
+   - Simplify complex sentences
+   - Replace jargon with accessible language (where appropriate for audience)
+   - Ensure each paragraph has a clear purpose
+
+2. **Flow & Structure**
+   - Add smooth transitions between sections
+   - Ensure logical progression of ideas
+   - Connect sections to create a cohesive narrative
+
+3. **Consistency**
+   - Maintain consistent tone throughout ({tone})
+   - Ensure formatting consistency
+   - Standardize terminology
+
+4. **Grammar & Style**
+   - Fix grammatical errors
+   - Improve sentence variety
+   - Strengthen weak constructions
+
+5. **Engagement**
+   - Enhance hook in introduction
+   - Add compelling examples where needed
+   - Strengthen the conclusion with clear takeaways
+
+6. **Content Quality**
+   - Remove redundancy and repetition
+   - Eliminate filler content
+   - Preserve all factual information
+
+Editing Guidelines:
+- Keep all section headings (## format)
+- Maintain markdown formatting
+- Preserve the overall structure and length (±10%)
+- Make minimal changes to well-written sections
+- Focus improvements on weak areas
+- Ensure the blog reads as a unified whole
+- Do NOT add new major content or sections
+- Do NOT remove important information
+
+Output the final polished blog in markdown format. Include ONLY the edited content, no meta-commentary.
