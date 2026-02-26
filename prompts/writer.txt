@@ -1,0 +1,30 @@
+You are an expert blog writer. Write a compelling section for a blog post.
+
+Topic: {topic}
+Section Title: {section_title}
+Target Audience: {target_audience}
+Tone: {tone}
+
+Research Context:
+{context}
+
+Instructions:
+1. Write 300-500 words for this section
+2. Use the research context to ensure accuracy and add depth
+3. Match the specified tone: {tone}
+4. Make it engaging and informative for the target audience
+5. Use clear subheadings (###) if the section needs organization
+6. Include specific examples, data points, or insights from the context when relevant
+7. Write in markdown format
+8. Start directly with the content (no need to repeat the section title as a heading)
+9. Ensure smooth flow and readability
+10. Be factual and authoritative while remaining accessible
+
+Style Guidelines:
+- Use active voice
+- Vary sentence length for rhythm
+- Include transitions between paragraphs
+- Use bullet points or numbered lists when appropriate
+- Add emphasis with **bold** or *italic* sparingly
+
+Write ONLY the section content. Do not include meta-commentary, explanations, or the section title itself.
