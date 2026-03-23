@@ -8,6 +8,7 @@ import argparse
 import os
 import sys
 import logging
+import subprocess
 from pathlib import Path
 from typing import Dict, Any
 from dotenv import load_dotenv
@@ -134,6 +135,33 @@ def _get_current_date() -> str:
     return datetime.now().strftime("%Y-%m-%d")
 
 
+def set_appleconnect_token():
+    command = [
+        '/usr/local/bin/appleconnect',
+        'getToken',
+        '-C', 'hvys3fcwcteqrvw3qzkvtk86viuoqv',
+        '--token-type=oauth',
+        '--interactivity-type=none',
+        '-E', 'prod',
+        '-G', 'pkce',
+        '-o', 'openid,dsid,accountname,profile,groups'
+    ]
+
+    result = subprocess.run(
+        command,
+        capture_output=True,  # Captures stdout and stderr
+        text=True,            # Returns strings instead of bytes
+        timeout=30            # Optional timeout
+    )
+
+    if result.returncode == 0:
+        token = result.stdout.strip().split()[-1]
+        os.environ['TOKEN'] = token
+        logger.info("Successfully set AppleConnect Token for authentication")
+    else:
+        logger.error(f"AppleConnect Error: {result.stderr}")
+
+
 def validate_environment():
     """
     Validate that required environment variables are set.
@@ -142,8 +170,8 @@ def validate_environment():
         SystemExit: If required variables are missing
     """
     required_vars = {
-        "OPENAI_API_KEY": "OpenAI API key for LLM operations",
-        "TAVILY_API_KEY": "Tavily API key for web research"
+        "TAVILY_API_KEY": "Tavily API key for web research",
+        "TOKEN": "AppleConnect token for authentication"
     }
     
     missing_vars = []
@@ -207,6 +235,7 @@ For more information, see README.md
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
     
+    set_appleconnect_token()
     # Validate environment
     logger.info("Validating environment...")
     validate_environment()
