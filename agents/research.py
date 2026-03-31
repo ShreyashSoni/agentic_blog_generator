@@ -10,6 +10,7 @@ import logging
 from typing import Dict, Any, List
 from tavily import TavilyClient
 from langchain_openai import ChatOpenAI
+from langchain_anthropic import ChatAnthropic
 from memory.vector_store import VectorStore
 
 logger = logging.getLogger(__name__)
@@ -81,9 +82,17 @@ def research_node(state: Dict[str, Any]) -> Dict[str, Any]:
     ids = []
     
     # Initialize LLM for summarization
-    llm = ChatOpenAI(
-        model=os.getenv("OPENAI_MODEL", "gpt-3.5-turbo"),
-        temperature=0.3
+    # llm = ChatOpenAI(
+    #     model=os.getenv("OPENAI_MODEL", "gpt-3.5-turbo"),
+    #     temperature=0.3
+    # )
+    llm = ChatAnthropic(
+        model_name=os.getenv("ANTHROPIC_MODEL", "anthropic.claude-sonnet-4-5-20250929-v1:0"), # anthropic.claude-opus-4-6-v1
+        base_url=os.getenv("ANTHROPIC_BASE_URL"),
+        default_headers={"Authorization": f"Bearer {os.getenv("TOKEN")}"},
+        timeout=30,
+        temperature=0.3,
+        stop=['exit']
     )
     
     search_results = results.get('results', [])

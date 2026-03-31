@@ -9,6 +9,7 @@ import os
 import logging
 from typing import Dict, Any, Optional
 from langchain_openai import ChatOpenAI
+from langchain_anthropic import ChatAnthropic
 from langchain_core.prompts import PromptTemplate
 
 logger = logging.getLogger(__name__)
@@ -70,9 +71,17 @@ def editor_node(state: Dict[str, Any]) -> Dict[str, Any]:
     logger.info(f"Editor: Draft created with {len(draft.split())} words")
     
     # Initialize LLM
-    llm = ChatOpenAI(
-        model=os.getenv("OPENAI_MODEL", "gpt-4"),
-        temperature=0.3  # Lower temperature for more consistent editing
+    # llm = ChatOpenAI(
+    #     model=os.getenv("OPENAI_MODEL", "gpt-4"),
+    #     temperature=0.3  # Lower temperature for more consistent editing
+    # )
+    llm = ChatAnthropic(
+        model_name=os.getenv("ANTHROPIC_MODEL", "anthropic.claude-sonnet-4-5-20250929-v1:0"), # anthropic.claude-opus-4-6-v1
+        base_url=os.getenv("ANTHROPIC_BASE_URL"),
+        default_headers={"Authorization": f"Bearer {os.getenv("TOKEN")}"},
+        timeout=30,
+        temperature=0.3,
+        stop=['exit']
     )
     
     # Load editor prompt template
