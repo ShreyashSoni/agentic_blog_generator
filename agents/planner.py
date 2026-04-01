@@ -12,6 +12,7 @@ from typing import Dict, Any
 from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
 from langchain_core.prompts import PromptTemplate
+from utils.data_utils import strip_markdown_wrapper
 
 logger = logging.getLogger(__name__)
 
@@ -90,7 +91,9 @@ def planner_node(state: Dict[str, Any]) -> Dict[str, Any]:
         
         # Parse JSON response
         content = response.content if isinstance(response.content, str) else str(response.content)
-        plan = json.loads(content)
+        # Strip markdown wrappers if present
+        cleaned_content = strip_markdown_wrapper(content)
+        plan = json.loads(cleaned_content)
         
         # Validate plan structure
         required_keys = ["target_audience", "blog_length", "section_titles", "keywords"]
