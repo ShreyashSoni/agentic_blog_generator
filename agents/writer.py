@@ -90,6 +90,7 @@ def writer_node(state: Dict[str, Any], section_title: str) -> Dict[str, Any]:
     # Load writer prompt template
     prompt_template_str = load_prompt("writer.txt")
     if not prompt_template_str:
+        logger.warning("Writer prompt template not found, using default")
         prompt_template_str = _get_default_writer_prompt()
     
     # Format context

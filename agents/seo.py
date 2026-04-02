@@ -12,6 +12,7 @@ import logging
 from typing import Dict, Any, List
 from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
+from utils.data_utils import strip_markdown_wrapper
 
 logger = logging.getLogger(__name__)
 
@@ -65,9 +66,11 @@ def seo_node(state: Dict[str, Any]) -> Dict[str, Any]:
         # Generate SEO metadata
         response = llm.invoke(prompt)
         content = response.content if isinstance(response.content, str) else str(response.content)
+        # Strip markdown wrappers if present
+        cleaned_content = strip_markdown_wrapper(content)
         
         # Parse JSON response
-        seo_meta = json.loads(content)
+        seo_meta = json.loads(cleaned_content)
         
         # Validate SEO metadata
         seo_meta = _validate_seo_metadata(seo_meta, topic, keywords)

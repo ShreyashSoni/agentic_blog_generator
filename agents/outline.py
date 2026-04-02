@@ -107,7 +107,7 @@ def _build_outline_prompt(
     suggested_sections = plan.get("section_titles", [])
     
     # Format research docs
-    research_text = "\n".join([f"- {doc}" for doc in research_docs[:5]])
+    research_text = "\n".join([f"- {doc}" for doc in research_docs[:7]])
     
     # Format suggested sections
     suggestions_text = "\n".join([f"- {section}" for section in suggested_sections])

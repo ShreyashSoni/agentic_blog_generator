@@ -87,6 +87,7 @@ def editor_node(state: Dict[str, Any]) -> Dict[str, Any]:
     # Load editor prompt template
     prompt_template_str = load_prompt("editor.txt")
     if not prompt_template_str:
+        logger.warning("Using default editor prompt")
         prompt_template_str = _get_default_editor_prompt()
     
     # Create prompt
