@@ -79,7 +79,7 @@ def editor_node(state: Dict[str, Any]) -> Dict[str, Any]:
         model_name=os.getenv("ANTHROPIC_MODEL", "anthropic.claude-sonnet-4-5-20250929-v1:0"), # anthropic.claude-opus-4-6-v1
         base_url=os.getenv("ANTHROPIC_BASE_URL"),
         default_headers={"Authorization": f"Bearer {os.getenv("TOKEN")}"},
-        timeout=30,
+        timeout=120,
         temperature=0.3,
         stop=['exit']
     )
@@ -102,20 +102,26 @@ def editor_node(state: Dict[str, Any]) -> Dict[str, Any]:
     # Edit content
     try:
         logger.info("Editor: Polishing content...")
-        response = chain.invoke({
+        response = chain.stream({
             "topic": topic,
             "draft": draft,
             "target_audience": plan.get("target_audience", "general audience"),
             "tone": plan.get("tone", "professional")
         })
+
+        edited_content = ""
+
+        for chunk in response:
+            edited_content += chunk.content if hasattr(chunk, 'content') else str(chunk)
         
-        edited_content = response.content if isinstance(response.content, str) else str(response.content)
+        # edited_content = response.content if isinstance(response.content, str) else str(response.content)
         
         # Validate edited content
         word_count = len(edited_content.split())
         logger.info(f"Editor: Final content has {word_count} words")
         
         if word_count < len(draft.split()) * 0.7:
+            logger.info(f"Editor content: {edited_content}")
             logger.warning("Editor: Edited content significantly shorter than draft, using draft")
             edited_content = draft
         
