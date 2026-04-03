@@ -63,7 +63,10 @@ def create_blog_workflow():
     return compiled_workflow
 
 
-def run_workflow(topic: str, verbose: bool = True) -> Dict[str, Any]:
+def run_workflow(topic: str, 
+                 verbose: bool = True, 
+                 llm_provider: str = "anthropic", 
+                 model_name: str = "anthropic.claude-opus-4-6-v1") -> Dict[str, Any]:
     """
     Run the complete blog generation workflow for a given topic.
     
@@ -73,6 +76,8 @@ def run_workflow(topic: str, verbose: bool = True) -> Dict[str, Any]:
     Args:
         topic: The blog topic to generate content about
         verbose: Whether to log progress updates
+        llm_provider: LLM provider ('openai' or 'anthropic')
+        model_name: Specific model to use
         
     Returns:
         Final state containing all generated content
@@ -85,7 +90,9 @@ def run_workflow(topic: str, verbose: bool = True) -> Dict[str, Any]:
     
     # Initialize state
     initial_state: Dict[str, Any] = {
-        "topic": topic
+        "topic": topic,
+        "llm_provider": llm_provider,
+        "model_name": model_name
     }
     
     # Execute workflow

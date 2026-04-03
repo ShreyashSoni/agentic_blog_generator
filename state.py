@@ -15,6 +15,8 @@ class BlogState(TypedDict, total=False):
     
     Attributes:
         topic: The blog topic provided by the user (required)
+        llm_provider: LLM provider ('openai' or 'anthropic')
+        model_name: Specific model to use
         plan: Structured blog plan including audience, length, sections, keywords
         research_docs: List of summarized research documents
         outline: Ordered list of section titles
@@ -27,6 +29,8 @@ class BlogState(TypedDict, total=False):
     
     # Core input (required)
     topic: str
+    llm_provider: str
+    model_name: str
     
     # Planning phase
     plan: Dict[str, Any]  # {target_audience, blog_length, section_titles, keywords, tone}

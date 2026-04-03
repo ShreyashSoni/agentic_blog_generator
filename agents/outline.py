@@ -5,10 +5,9 @@ This agent uses the blog plan and research summaries to create a detailed
 outline with section titles that will guide the content generation.
 """
 
-import os
 import logging
 from typing import Dict, Any, List
-from langchain_openai import ChatOpenAI
+from utils.llm_factory import get_llm
 
 logger = logging.getLogger(__name__)
 
@@ -39,12 +38,10 @@ def outline_node(state: Dict[str, Any]) -> Dict[str, Any]:
     research_docs = state.get("research_docs", [])
     
     logger.info(f"Outline: Generating outline for - '{topic}'")
-    
-    # Initialize LLM
-    llm = ChatOpenAI(
-        model=os.getenv("OPENAI_MODEL", "gpt-4"),
-        temperature=0.5
-    )
+
+    llm = get_llm(provider=state.get("llm_provider"), 
+                  model_name=state.get("model_name"), 
+                  temperature=0.5)
     
     # Build prompt
     prompt = _build_outline_prompt(topic, plan, research_docs)
@@ -98,7 +95,7 @@ def _build_outline_prompt(
     suggested_sections = plan.get("section_titles", [])
     
     # Format research docs
-    research_text = "\n".join([f"- {doc}" for doc in research_docs[:5]])
+    research_text = "\n".join([f"- {doc}" for doc in research_docs[:7]])
     
     # Format suggested sections
     suggestions_text = "\n".join([f"- {section}" for section in suggested_sections])

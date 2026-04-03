@@ -5,12 +5,12 @@ This agent creates comprehensive SEO metadata including title, description,
 slug, keywords, FAQ, and keyword density analysis.
 """
 
-import os
 import re
 import json
 import logging
 from typing import Dict, Any, List
-from langchain_openai import ChatOpenAI
+from utils.data_utils import strip_markdown_wrapper
+from utils.llm_factory import get_llm
 
 logger = logging.getLogger(__name__)
 
@@ -42,12 +42,10 @@ def seo_node(state: Dict[str, Any]) -> Dict[str, Any]:
     keywords = plan.get("keywords", [])
     
     logger.info(f"SEO: Generating metadata for - '{topic}'")
-    
-    # Initialize LLM
-    llm = ChatOpenAI(
-        model=os.getenv("OPENAI_MODEL", "gpt-4"),
-        temperature=0.5
-    )
+
+    llm = get_llm(provider=state.get("llm_provider"), 
+                  model_name=state.get("model_name"), 
+                  temperature=0.5)
     
     # Build prompt for SEO metadata
     prompt = _build_seo_prompt(topic, edited_content, keywords)
@@ -56,9 +54,11 @@ def seo_node(state: Dict[str, Any]) -> Dict[str, Any]:
         # Generate SEO metadata
         response = llm.invoke(prompt)
         content = response.content if isinstance(response.content, str) else str(response.content)
+        # Strip markdown wrappers if present
+        cleaned_content = strip_markdown_wrapper(content)
         
         # Parse JSON response
-        seo_meta = json.loads(content)
+        seo_meta = json.loads(cleaned_content)
         
         # Validate SEO metadata
         seo_meta = _validate_seo_metadata(seo_meta, topic, keywords)

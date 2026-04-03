@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Dict, Any
 from dotenv import load_dotenv
 from workflows.blog_graph import run_workflow
+from utils.env_utils import set_appleconnect_token, validate_environment
 
 # Load environment variables
 load_dotenv()
@@ -134,32 +135,6 @@ def _get_current_date() -> str:
     return datetime.now().strftime("%Y-%m-%d")
 
 
-def validate_environment():
-    """
-    Validate that required environment variables are set.
-    
-    Raises:
-        SystemExit: If required variables are missing
-    """
-    required_vars = {
-        "OPENAI_API_KEY": "OpenAI API key for LLM operations",
-        "TAVILY_API_KEY": "Tavily API key for web research"
-    }
-    
-    missing_vars = []
-    for var, description in required_vars.items():
-        if not os.getenv(var):
-            missing_vars.append(f"  • {var}: {description}")
-    
-    if missing_vars:
-        logger.error("Missing required environment variables:")
-        for var in missing_vars:
-            logger.error(var)
-        logger.error("\nPlease set these variables in your .env file or environment")
-        logger.error("See .env.example for reference")
-        sys.exit(1)
-
-
 def main():
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
@@ -200,13 +175,27 @@ For more information, see README.md
         action="store_true",
         help="Don't save the blog to file (print to console only)"
     )
-    
+
+    parser.add_argument(
+        "--provider",
+        type=str,
+        choices=["openai", "anthropic"],
+        help="LLM provider to use (default: from LLM_PROVIDER env var or 'anthropic')"
+    )
+
+    parser.add_argument(
+        "--model",
+        type=str,
+        help="Specific model name to use (overrides env var defaults)"
+    )
+
     args = parser.parse_args()
     
     # Set logging level
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
     
+    set_appleconnect_token()
     # Validate environment
     logger.info("Validating environment...")
     validate_environment()
@@ -224,7 +213,10 @@ For more information, see README.md
         logger.info("🚀 Starting blog generation workflow...")
         print("⏳ Generating blog... This may take a few minutes.\n")
         
-        final_state = run_workflow(args.topic, verbose=True)
+        final_state = run_workflow(args.topic, 
+                                   verbose=True, 
+                                   llm_provider=args.provider, 
+                                   model_name=args.model)
         
         # Extract results
         edited_content = final_state.get("edited", "")

@@ -9,8 +9,9 @@ import json
 import logging
 import os
 from typing import Dict, Any
-from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
+from utils.data_utils import strip_markdown_wrapper
+from utils.llm_factory import get_llm
 
 logger = logging.getLogger(__name__)
 
@@ -51,12 +52,10 @@ def planner_node(state: Dict[str, Any]) -> Dict[str, Any]:
     """
     topic = state["topic"]
     logger.info(f"Planner: Analyzing topic - '{topic}'")
-    
-    # Initialize LLM (API key is read from OPENAI_API_KEY env var automatically)
-    llm = ChatOpenAI(
-        model=os.getenv("OPENAI_MODEL", "gpt-4"),
-        temperature=0.7
-    )
+
+    llm = get_llm(provider=state.get("llm_provider"), 
+                  model_name=state.get("model_name"), 
+                  temperature=0.7)
     
     # Load prompt template
     try:
@@ -80,7 +79,9 @@ def planner_node(state: Dict[str, Any]) -> Dict[str, Any]:
         
         # Parse JSON response
         content = response.content if isinstance(response.content, str) else str(response.content)
-        plan = json.loads(content)
+        # Strip markdown wrappers if present
+        cleaned_content = strip_markdown_wrapper(content)
+        plan = json.loads(cleaned_content)
         
         # Validate plan structure
         required_keys = ["target_audience", "blog_length", "section_titles", "keywords"]

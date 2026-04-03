@@ -8,8 +8,8 @@ context from the vector store and using it to inform the LLM generation.
 import os
 import logging
 from typing import Dict, Any, Optional
-from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
+from utils.llm_factory import get_llm
 
 logger = logging.getLogger(__name__)
 
@@ -71,16 +71,15 @@ def writer_node(state: Dict[str, Any], section_title: str) -> Dict[str, Any]:
             logger.info(f"Writer: Retrieved {len(context_docs)} context documents")
         except Exception as e:
             logger.warning(f"Writer: Failed to retrieve context: {e}")
-    
-    # Initialize LLM
-    llm = ChatOpenAI(
-        model=os.getenv("OPENAI_MODEL", "gpt-4"),
-        temperature=0.7
-    )
+
+    llm = get_llm(provider=state.get("llm_provider"), 
+                  model_name=state.get("model_name"), 
+                  temperature=0.7)
     
     # Load writer prompt template
     prompt_template_str = load_prompt("writer.txt")
     if not prompt_template_str:
+        logger.warning("Writer prompt template not found, using default")
         prompt_template_str = _get_default_writer_prompt()
     
     # Format context
@@ -95,29 +94,40 @@ def writer_node(state: Dict[str, Any], section_title: str) -> Dict[str, Any]:
     # Create chain
     chain = prompt | llm
     
-    # Generate section
-    try:
-        response = chain.invoke({
-            "topic": topic,
-            "section_title": section_title,
-            "target_audience": plan.get("target_audience", "general audience"),
-            "tone": plan.get("tone", "professional"),
-            "context": context_text
-        })
-        
-        section_content = response.content if isinstance(response.content, str) else str(response.content)
-        
-        # Validate section length
-        word_count = len(section_content.split())
-        logger.info(f"Writer: Generated section with {word_count} words")
-        
-        if word_count < 100:
-            logger.warning(f"Writer: Section too short ({word_count} words), regenerating...")
-            section_content = _generate_fallback_section(section_title, topic, context_text)
-        
-    except Exception as e:
-        logger.error(f"Writer: Failed to generate section: {e}")
-        section_content = _generate_fallback_section(section_title, topic, context_text)
+    # Generate section with retry logic
+    max_retries = 1
+    section_content = None
+    
+    for attempt in range(max_retries + 1):
+        try:
+            response = chain.invoke({
+                "topic": topic,
+                "section_title": section_title,
+                "target_audience": plan.get("target_audience", "general audience"),
+                "tone": plan.get("tone", "professional"),
+                "context": context_text
+            })
+            
+            section_content = response.content if isinstance(response.content, str) else str(response.content)
+            
+            # Validate section length
+            word_count = len(section_content.split())
+            logger.info(f"Writer: Generated section with {word_count} words (attempt {attempt + 1}/{max_retries + 1})")
+            
+            if word_count >= 100:
+                # Section is good, break out of retry loop
+                break
+            else:
+                if attempt < max_retries:
+                    logger.warning(f"Writer: Section too short ({word_count} words), retrying...")
+                else:
+                    logger.warning(f"Writer: Section still too short after {max_retries + 1} attempts, using fallback...")
+                    section_content = _generate_fallback_section(section_title, topic, context_text)
+                    
+        except Exception as e:
+            logger.error(f"Writer: Failed to generate section on attempt {attempt + 1}: {e}")
+            if attempt >= max_retries:
+                section_content = _generate_fallback_section(section_title, topic, context_text)
     
     # Initialize sections dict if needed
     if "sections" not in state:
