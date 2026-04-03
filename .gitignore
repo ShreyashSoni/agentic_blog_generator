@@ -64,3 +64,6 @@ htmlcov/
 # Project Specific
 plans/
 !plans/.gitkeep
+
+# output blogs
+my_blogs/
