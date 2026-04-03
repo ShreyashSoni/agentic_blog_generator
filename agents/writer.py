@@ -105,29 +105,40 @@ def writer_node(state: Dict[str, Any], section_title: str) -> Dict[str, Any]:
     # Create chain
     chain = prompt | llm
     
-    # Generate section
-    try:
-        response = chain.invoke({
-            "topic": topic,
-            "section_title": section_title,
-            "target_audience": plan.get("target_audience", "general audience"),
-            "tone": plan.get("tone", "professional"),
-            "context": context_text
-        })
-        
-        section_content = response.content if isinstance(response.content, str) else str(response.content)
-        
-        # Validate section length
-        word_count = len(section_content.split())
-        logger.info(f"Writer: Generated section with {word_count} words")
-        
-        if word_count < 100:
-            logger.warning(f"Writer: Section too short ({word_count} words), regenerating...")
-            section_content = _generate_fallback_section(section_title, topic, context_text)
-        
-    except Exception as e:
-        logger.error(f"Writer: Failed to generate section: {e}")
-        section_content = _generate_fallback_section(section_title, topic, context_text)
+    # Generate section with retry logic
+    max_retries = 1
+    section_content = None
+    
+    for attempt in range(max_retries + 1):
+        try:
+            response = chain.invoke({
+                "topic": topic,
+                "section_title": section_title,
+                "target_audience": plan.get("target_audience", "general audience"),
+                "tone": plan.get("tone", "professional"),
+                "context": context_text
+            })
+            
+            section_content = response.content if isinstance(response.content, str) else str(response.content)
+            
+            # Validate section length
+            word_count = len(section_content.split())
+            logger.info(f"Writer: Generated section with {word_count} words (attempt {attempt + 1}/{max_retries + 1})")
+            
+            if word_count >= 100:
+                # Section is good, break out of retry loop
+                break
+            else:
+                if attempt < max_retries:
+                    logger.warning(f"Writer: Section too short ({word_count} words), retrying...")
+                else:
+                    logger.warning(f"Writer: Section still too short after {max_retries + 1} attempts, using fallback...")
+                    section_content = _generate_fallback_section(section_title, topic, context_text)
+                    
+        except Exception as e:
+            logger.error(f"Writer: Failed to generate section on attempt {attempt + 1}: {e}")
+            if attempt >= max_retries:
+                section_content = _generate_fallback_section(section_title, topic, context_text)
     
     # Initialize sections dict if needed
     if "sections" not in state:

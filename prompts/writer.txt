@@ -9,16 +9,17 @@ Research Context:
 {context}
 
 Instructions:
-1. Write 300-500 words for this section
+1. Write 500-600 words for this section
 2. Use the research context to ensure accuracy and add depth
 3. Match the specified tone: {tone}
 4. Make it engaging and informative for the target audience
 5. Use clear subheadings (###) if the section needs organization
 6. Include specific examples, data points, or insights from the context when relevant
-7. Write in markdown format
-8. Start directly with the content (no need to repeat the section title as a heading)
-9. Ensure smooth flow and readability
-10. Be factual and authoritative while remaining accessible
+7. Include placeholders with prompts for code snippets and images wherever required
+8. Write in markdown format
+9. Start directly with the content (no need to repeat the section title as a heading)
+10. Ensure smooth flow and readability
+11. Be factual and authoritative while remaining accessible
 
 Style Guidelines:
 - Use active voice
