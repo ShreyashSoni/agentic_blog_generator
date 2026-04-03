@@ -5,11 +5,9 @@ This agent uses the blog plan and research summaries to create a detailed
 outline with section titles that will guide the content generation.
 """
 
-import os
 import logging
 from typing import Dict, Any, List
-from langchain_openai import ChatOpenAI
-from langchain_anthropic import ChatAnthropic
+from utils.llm_factory import get_llm
 
 logger = logging.getLogger(__name__)
 
@@ -40,20 +38,10 @@ def outline_node(state: Dict[str, Any]) -> Dict[str, Any]:
     research_docs = state.get("research_docs", [])
     
     logger.info(f"Outline: Generating outline for - '{topic}'")
-    
-    # Initialize LLM
-    # llm = ChatOpenAI(
-    #     model=os.getenv("OPENAI_MODEL", "gpt-4"),
-    #     temperature=0.5
-    # )
-    llm = ChatAnthropic(
-        model_name=os.getenv("ANTHROPIC_MODEL", "anthropic.claude-sonnet-4-5-20250929-v1:0"), # anthropic.claude-opus-4-6-v1
-        base_url=os.getenv("ANTHROPIC_BASE_URL"),
-        default_headers={"Authorization": f"Bearer {os.getenv("TOKEN")}"},
-        timeout=30,
-        temperature=0.5,
-        stop=['exit']
-    )
+
+    llm = get_llm(provider=state.get("llm_provider"), 
+                  model_name=state.get("model_name"), 
+                  temperature=0.5)
     
     # Build prompt
     prompt = _build_outline_prompt(topic, plan, research_docs)

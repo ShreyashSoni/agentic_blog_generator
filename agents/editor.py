@@ -8,9 +8,8 @@ and then polishes the content for clarity, flow, and consistency.
 import os
 import logging
 from typing import Dict, Any, Optional
-from langchain_openai import ChatOpenAI
-from langchain_anthropic import ChatAnthropic
 from langchain_core.prompts import PromptTemplate
+from utils.llm_factory import get_llm
 
 logger = logging.getLogger(__name__)
 
@@ -69,20 +68,10 @@ def editor_node(state: Dict[str, Any]) -> Dict[str, Any]:
     state["draft"] = draft
     
     logger.info(f"Editor: Draft created with {len(draft.split())} words")
-    
-    # Initialize LLM
-    # llm = ChatOpenAI(
-    #     model=os.getenv("OPENAI_MODEL", "gpt-4"),
-    #     temperature=0.3  # Lower temperature for more consistent editing
-    # )
-    llm = ChatAnthropic(
-        model_name=os.getenv("ANTHROPIC_MODEL", "anthropic.claude-sonnet-4-5-20250929-v1:0"), # anthropic.claude-opus-4-6-v1
-        base_url=os.getenv("ANTHROPIC_BASE_URL"),
-        default_headers={"Authorization": f"Bearer {os.getenv("TOKEN")}"},
-        timeout=120,
-        temperature=0.3,
-        stop=['exit']
-    )
+
+    llm = get_llm(provider=state.get("llm_provider"), 
+                  model_name=state.get("model_name"), 
+                  temperature=0.3)
     
     # Load editor prompt template
     prompt_template_str = load_prompt("editor.txt")

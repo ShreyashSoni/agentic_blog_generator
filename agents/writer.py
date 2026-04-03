@@ -8,9 +8,8 @@ context from the vector store and using it to inform the LLM generation.
 import os
 import logging
 from typing import Dict, Any, Optional
-from langchain_openai import ChatOpenAI
-from langchain_anthropic import ChatAnthropic
 from langchain_core.prompts import PromptTemplate
+from utils.llm_factory import get_llm
 
 logger = logging.getLogger(__name__)
 
@@ -72,20 +71,10 @@ def writer_node(state: Dict[str, Any], section_title: str) -> Dict[str, Any]:
             logger.info(f"Writer: Retrieved {len(context_docs)} context documents")
         except Exception as e:
             logger.warning(f"Writer: Failed to retrieve context: {e}")
-    
-    # Initialize LLM
-    # llm = ChatOpenAI(
-    #     model=os.getenv("OPENAI_MODEL", "gpt-4"),
-    #     temperature=0.7
-    # )
-    llm = ChatAnthropic(
-        model_name=os.getenv("ANTHROPIC_MODEL", "anthropic.claude-sonnet-4-5-20250929-v1:0"), # anthropic.claude-opus-4-6-v1
-        base_url=os.getenv("ANTHROPIC_BASE_URL"),
-        default_headers={"Authorization": f"Bearer {os.getenv("TOKEN")}"},
-        timeout=30,
-        temperature=0.7,
-        stop=['exit']
-    )
+
+    llm = get_llm(provider=state.get("llm_provider"), 
+                  model_name=state.get("model_name"), 
+                  temperature=0.7)
     
     # Load writer prompt template
     prompt_template_str = load_prompt("writer.txt")

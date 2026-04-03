@@ -9,10 +9,9 @@ import json
 import logging
 import os
 from typing import Dict, Any
-from langchain_openai import ChatOpenAI
-from langchain_anthropic import ChatAnthropic
 from langchain_core.prompts import PromptTemplate
 from utils.data_utils import strip_markdown_wrapper
+from utils.llm_factory import get_llm
 
 logger = logging.getLogger(__name__)
 
@@ -53,21 +52,10 @@ def planner_node(state: Dict[str, Any]) -> Dict[str, Any]:
     """
     topic = state["topic"]
     logger.info(f"Planner: Analyzing topic - '{topic}'")
-    
-    # Initialize LLM (API key is read from OPENAI_API_KEY env var automatically)
-    # llm = ChatOpenAI(
-    #     model=os.getenv("OPENAI_MODEL", "gpt-4"),
-    #     temperature=0.7
-    # )
 
-    llm = ChatAnthropic(
-        model_name=os.getenv("ANTHROPIC_MODEL", "anthropic.claude-sonnet-4-5-20250929-v1:0"), # anthropic.claude-opus-4-6-v1
-        base_url=os.getenv("ANTHROPIC_BASE_URL"),
-        default_headers={"Authorization": f"Bearer {os.getenv("TOKEN")}"},
-        timeout=30,
-        temperature=0.7,
-        stop=['exit']
-    )
+    llm = get_llm(provider=state.get("llm_provider"), 
+                  model_name=state.get("model_name"), 
+                  temperature=0.7)
     
     # Load prompt template
     try:
