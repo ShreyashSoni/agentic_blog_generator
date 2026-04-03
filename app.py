@@ -175,7 +175,20 @@ For more information, see README.md
         action="store_true",
         help="Don't save the blog to file (print to console only)"
     )
-    
+
+    parser.add_argument(
+        "--provider",
+        type=str,
+        choices=["openai", "anthropic"],
+        help="LLM provider to use (default: from LLM_PROVIDER env var or 'anthropic')"
+    )
+
+    parser.add_argument(
+        "--model",
+        type=str,
+        help="Specific model name to use (overrides env var defaults)"
+    )
+
     args = parser.parse_args()
     
     # Set logging level
@@ -200,7 +213,10 @@ For more information, see README.md
         logger.info("🚀 Starting blog generation workflow...")
         print("⏳ Generating blog... This may take a few minutes.\n")
         
-        final_state = run_workflow(args.topic, verbose=True)
+        final_state = run_workflow(args.topic, 
+                                   verbose=True, 
+                                   llm_provider=args.provider, 
+                                   model_name=args.model)
         
         # Extract results
         edited_content = final_state.get("edited", "")
