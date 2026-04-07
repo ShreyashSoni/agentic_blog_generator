@@ -70,16 +70,18 @@ graph TB
 - ✅ **RAG Integration**: Context-aware writing using vector database
 - ✅ **Web Research**: Real-time web search via Tavily API
 - ✅ **SEO Optimization**: Auto-generated metadata, keywords, and FAQ
+- ✅ **WordPress Publishing**: One-command publishing to WordPress as drafts
 - ✅ **State Management**: Shared BlogState flows through all agents
 - ✅ **Error Handling**: Graceful fallbacks and retry logic
 
 ### Output Quality
-- 📝 800-2000 word blog posts
+- 📝 2000-4000 word blog posts
 - 🎨 Markdown formatting with proper structure
 - 🔑 SEO-optimized titles and descriptions
 - ❓ Auto-generated FAQ sections
 - 📊 Keyword density analysis
 - 🎯 Audience-appropriate tone
+- 📤 Direct WordPress publishing with categories and tags
 
 ---
 
@@ -164,6 +166,11 @@ agentic_blog_generator/
 │   ├── __init__.py
 │   └── vector_store.py         # ChromaDB wrapper
 │
+├── services/                    # Publishing services
+│   ├── __init__.py
+│   ├── markdown_parser.py      # Parse blog markdown files
+│   └── wordpress_publisher.py  # WordPress REST API client
+│
 ├── workflows/                   # LangGraph orchestration
 │   ├── __init__.py
 │   └── blog_graph.py           # Workflow definition
@@ -179,10 +186,12 @@ agentic_blog_generator/
 ├── plans/                       # Architecture documentation
 │   ├── architecture.md
 │   ├── implementation_guide.md
-│   └── technical_considerations.md
+│   ├── technical_considerations.md
+│   └── wordpress_publishing_plan.md
 │
 ├── state.py                     # BlogState TypedDict definition
-├── app.py                       # CLI entry point
+├── app.py                       # CLI entry point for blog generation
+├── publish_to_wordpress.py      # CLI for WordPress publishing
 ├── requirements.txt             # Python dependencies
 ├── .env.example                 # Environment variable template
 ├── .gitignore                   # Git ignore rules
@@ -356,6 +365,140 @@ This project demonstrates:
 
 ---
 
+## 📤 Publishing to WordPress
+
+Once you've generated a blog post, you can publish it directly to your WordPress site as a draft using the included WordPress publishing service.
+
+### Setup
+
+1. **Generate WordPress Application Password**
+   - Log in to your WordPress admin dashboard
+   - Navigate to **Users → Profile**
+   - Scroll to the **Application Passwords** section
+   - Enter a name (e.g., "Blog Generator")
+   - Click **Add New Application Password**
+   - Copy the generated password (format: `xxxx xxxx xxxx xxxx xxxx xxxx`)
+
+2. **Configure Environment Variables**
+
+   Add to your `.env` file:
+   ```bash
+   # WordPress Publishing Configuration
+   WORDPRESS_SITE_URL=https://yourblog.com
+   WORDPRESS_USERNAME=your_username
+   WORDPRESS_APP_PASSWORD=xxxx xxxx xxxx xxxx xxxx xxxx
+   ```
+
+3. **Install Dependencies** (if not already installed)
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+### Usage
+
+#### Publish Single Blog as Draft
+
+```bash
+python publish_to_wordpress.py --file outputs/my-blog.md
+```
+
+#### Publish as Published Post
+
+```bash
+python publish_to_wordpress.py --file outputs/my-blog.md --status publish
+```
+
+#### Publish with Categories and Tags
+
+```bash
+python publish_to_wordpress.py --file outputs/my-blog.md \
+    --categories "Technology,AI" \
+    --tags "machine-learning,python,tutorial"
+```
+
+**Note**: If you don't specify tags, the script will automatically use the keywords from the blog's frontmatter.
+
+#### Batch Publish Multiple Blogs
+
+```bash
+python publish_to_wordpress.py --directory outputs/ --batch
+```
+
+#### Dry Run (Validate Without Publishing)
+
+```bash
+python publish_to_wordpress.py --file outputs/my-blog.md --dry-run
+```
+
+### Command Reference
+
+```
+Options:
+  --file FILE              Path to markdown blog file
+  --directory DIR          Directory containing multiple blogs (use with --batch)
+  --status STATUS          Post status: draft, publish, or private (default: draft)
+  --categories CATS        Comma-separated category names
+  --tags TAGS             Comma-separated tag names
+  --batch                 Enable batch processing mode
+  --dry-run               Validate without publishing
+  --verbose               Enable detailed logging
+  --site-url URL          Override WordPress site URL
+  --username USER         Override WordPress username
+  --app-password PWD      Override WordPress application password
+```
+
+### Output Example
+
+```
+======================================================================
+📤 WORDPRESS BLOG PUBLISHER
+======================================================================
+
+🔧 Initializing WordPress publisher...
+🔐 Authenticating with WordPress...
+✅ Authentication successful!
+
+📄 Processing: outputs/understanding-rag-in-llms.md
+   Title: Understanding RAG: A Complete Guide
+   Slug: understanding-rag-in-llms
+   Content length: 3542 characters
+✅ Published successfully!
+   Post ID: 123
+   Status: draft
+   URL: https://yourblog.com/?p=123
+   Edit: https://yourblog.com/wp-admin/post.php?post=123&action=edit
+
+✨ Publishing completed successfully!
+```
+
+### Troubleshooting
+
+**Authentication Failed**
+- Verify your WordPress site URL is correct and includes `https://`
+- Ensure Application Passwords are enabled (WordPress 5.6+)
+- Check that your username and application password are correct
+- Make sure your user account has permission to create posts
+
+**Connection Errors**
+- Verify your WordPress site is accessible
+- Check your internet connection
+- Ensure the WordPress REST API is enabled
+- Try accessing `https://yoursite.com/wp-json/wp/v2/posts` in your browser
+
+**Post Creation Failed**
+- Check that your user has the `publish_posts` capability
+- Verify the blog file has valid frontmatter (title, description, slug)
+- Check WordPress error logs for detailed information
+
+### WordPress Requirements
+
+- WordPress version 5.6 or higher
+- REST API enabled (enabled by default)
+- Permalinks configured (not "Plain")
+- User account with post creation permissions
+
+---
+
 ## 📈 Future Enhancements
 
 Potential improvements:
@@ -368,6 +511,9 @@ Potential improvements:
 - [ ] Image generation with DALL-E
 - [ ] Multi-language support
 - [ ] Custom tone/style templates
+- [ ] WordPress featured image auto-upload
+- [ ] Update existing WordPress posts
+- [ ] Schedule WordPress posts for future publishing
 
 ---
 
