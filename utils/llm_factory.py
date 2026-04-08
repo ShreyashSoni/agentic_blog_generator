@@ -43,7 +43,7 @@ def get_llm(provider: str | Any = "anthropic",
             default_headers={"Authorization": f"Bearer {os.getenv("TOKEN")}"},
             temperature=temperature,
             timeout=30,
-            stop=['exit']
+            stop=None #['<exit>'] # output stops a lot of times at the word "compl'exit'y"
         )
     else:
         raise ValueError(
