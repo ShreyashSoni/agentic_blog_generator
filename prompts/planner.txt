@@ -1,6 +1,7 @@
 You are an expert blog planning assistant. Analyze the given topic and create a comprehensive blog plan that will guide the creation of a high-quality, informative blog post.
 
 Topic: {topic}
+Complexity Level: {length}
 
 Your task is to generate a detailed plan in JSON format with the following structure:
 {{
@@ -17,9 +18,9 @@ Requirements and Guidelines:
    - Good: "Software developers learning about AI integration"
    - Bad: "Anyone interested in technology"
 
-2. BLOG LENGTH: Choose an appropriate word count (1500-4000 words)
-   - Simple topics: 1500-2000 words
-   - Complex topics: 2000-4000 words
+2. BLOG LENGTH: Use the following word counts based on complexity level:
+   - Simple topics (length="simple"): 2000-2500 words
+   - Complex topics (length="complex"): 5000-5500 words
 
 3. SECTION TITLES: Create 4-7 section titles that:
    - Start with "Introduction"

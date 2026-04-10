@@ -4,12 +4,15 @@ Topic: {topic}
 Section Title: {section_title}
 Target Audience: {target_audience}
 Tone: {tone}
+Complexity Level: {length}
 
 Research Context:
 {context}
 
 Instructions:
-1. Write 500-600 words for this section
+1. Write approximately {target_words} words for this section based on complexity:
+   - Simple topics (length="simple"): ~400 words per section
+   - Complex topics (length="complex"): ~600 words per section
 2. Use the research context to ensure accuracy and add depth
 3. Match the specified tone: {tone}
 4. Make it engaging and informative for the target audience
