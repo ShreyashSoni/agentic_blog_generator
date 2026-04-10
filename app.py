@@ -190,6 +190,14 @@ For more information, see README.md
         help="Specific model name to use (overrides env var defaults)"
     )
 
+    parser.add_argument(
+        "--length",
+        type=str,
+        choices=["simple", "complex"],
+        default="complex",
+        help="Blog complexity level (default: complex). Simple: 2000-2500 words, Complex: ~5500 words"
+    )
+
     args = parser.parse_args()
     
     # Set logging level
@@ -207,6 +215,7 @@ For more information, see README.md
     print("="*70)
     print(f"\n📝 Topic: {args.topic}")
     print(f"📁 Output Directory: {args.output_dir}")
+    print(f"📏 Length: {args.length.capitalize()}")
     print("\n" + "="*70 + "\n")
     
     # Run workflow
@@ -214,10 +223,11 @@ For more information, see README.md
         logger.info("🚀 Starting blog generation workflow...")
         print("⏳ Generating blog... This may take a few minutes.\n")
         
-        final_state = run_workflow(args.topic, 
-                                   verbose=True, 
-                                   llm_provider=args.provider, 
-                                   model_name=args.model)
+        final_state = run_workflow(args.topic,
+                                   verbose=True,
+                                   llm_provider=args.provider,
+                                   model_name=args.model,
+                                   length=args.length)
         
         # Extract results
         edited_content = final_state.get("edited", "")

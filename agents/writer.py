@@ -59,8 +59,12 @@ def writer_node(state: Dict[str, Any], section_title: str) -> Dict[str, Any]:
     topic = state["topic"]
     plan = state.get("plan", {})
     vector_store = state.get("_vector_store")
+    length = state.get("length", "complex")
     
-    logger.info(f"Writer: Writing section - '{section_title}'")
+    # Calculate target words based on complexity
+    target_words = 400 if length == "simple" else 600
+    
+    logger.info(f"Writer: Writing section - '{section_title}' (length: {length}, target: ~{target_words} words)")
     
     # Retrieve relevant context via RAG
     context_docs = []
@@ -88,7 +92,7 @@ def writer_node(state: Dict[str, Any], section_title: str) -> Dict[str, Any]:
     # Create prompt
     prompt = PromptTemplate(
         template=prompt_template_str,
-        input_variables=["topic", "section_title", "target_audience", "tone", "context"]
+        input_variables=["topic", "section_title", "target_audience", "tone", "length", "target_words", "context"]
     )
     
     # Create chain
@@ -105,6 +109,8 @@ def writer_node(state: Dict[str, Any], section_title: str) -> Dict[str, Any]:
                 "section_title": section_title,
                 "target_audience": plan.get("target_audience", "general audience"),
                 "tone": plan.get("tone", "professional"),
+                "length": length,
+                "target_words": target_words,
                 "context": context_text
             })
             

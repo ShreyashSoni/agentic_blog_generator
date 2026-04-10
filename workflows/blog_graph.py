@@ -63,10 +63,11 @@ def create_blog_workflow():
     return compiled_workflow
 
 
-def run_workflow(topic: str, 
-                 verbose: bool = True, 
-                 llm_provider: str = "anthropic", 
-                 model_name: str = "anthropic.claude-opus-4-6-v1") -> Dict[str, Any]:
+def run_workflow(topic: str,
+                 verbose: bool = True,
+                 llm_provider: str = "anthropic",
+                 model_name: str = "anthropic.claude-opus-4-6-v1",
+                 length: str = "complex") -> Dict[str, Any]:
     """
     Run the complete blog generation workflow for a given topic.
     
@@ -78,6 +79,7 @@ def run_workflow(topic: str,
         verbose: Whether to log progress updates
         llm_provider: LLM provider ('openai' or 'anthropic')
         model_name: Specific model to use
+        length: Blog complexity level ('simple' or 'complex')
         
     Returns:
         Final state containing all generated content
@@ -92,7 +94,8 @@ def run_workflow(topic: str,
     initial_state: Dict[str, Any] = {
         "topic": topic,
         "llm_provider": llm_provider,
-        "model_name": model_name
+        "model_name": model_name,
+        "length": length
     }
     
     # Execute workflow

@@ -51,10 +51,11 @@ def planner_node(state: Dict[str, Any]) -> Dict[str, Any]:
         Updated state with plan
     """
     topic = state["topic"]
-    logger.info(f"Planner: Analyzing topic - '{topic}'")
+    length = state.get("length", "complex")
+    logger.info(f"Planner: Analyzing topic - '{topic}' (length: {length})")
 
-    llm = get_llm(provider=state.get("llm_provider"), 
-                  model_name=state.get("model_name"), 
+    llm = get_llm(provider=state.get("llm_provider"),
+                  model_name=state.get("model_name"),
                   temperature=0.7)
     
     # Load prompt template
@@ -67,7 +68,7 @@ def planner_node(state: Dict[str, Any]) -> Dict[str, Any]:
     # Create prompt
     prompt = PromptTemplate(
         template=prompt_template,
-        input_variables=["topic"]
+        input_variables=["topic", "length"]
     )
     
     # Create chain
@@ -75,7 +76,7 @@ def planner_node(state: Dict[str, Any]) -> Dict[str, Any]:
     
     # Generate plan
     try:
-        response = chain.invoke({"topic": topic})
+        response = chain.invoke({"topic": topic, "length": length})
         
         # Parse JSON response
         content = response.content if isinstance(response.content, str) else str(response.content)
