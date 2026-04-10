@@ -40,6 +40,7 @@ def seo_node(state: Dict[str, Any]) -> Dict[str, Any]:
     edited_content = state.get("edited", "")
     plan = state.get("plan", {})
     keywords = plan.get("keywords", [])
+    target_audience = plan.get("target_audience", "General audience")
     
     logger.info(f"SEO: Generating metadata for - '{topic}'")
 
@@ -61,11 +62,11 @@ def seo_node(state: Dict[str, Any]) -> Dict[str, Any]:
         seo_meta = json.loads(cleaned_content)
         
         # Validate SEO metadata
-        seo_meta = _validate_seo_metadata(seo_meta, topic, keywords)
+        seo_meta = _validate_seo_metadata(seo_meta, topic, keywords, target_audience)
         
     except (json.JSONDecodeError, Exception) as e:
         logger.error(f"SEO: Failed to generate metadata: {e}")
-        seo_meta = _create_fallback_seo_meta(topic, keywords)
+        seo_meta = _create_fallback_seo_meta(topic, keywords, target_audience)
     
     # Add keyword density analysis
     seo_meta["keyword_density"] = calculate_keyword_density(edited_content, keywords)
@@ -156,7 +157,8 @@ Output ONLY valid JSON, no additional text."""
 def _validate_seo_metadata(
     seo_meta: Dict[str, Any],
     topic: str,
-    keywords: List[str]
+    keywords: List[str],
+    target_audience: str
 ) -> Dict[str, Any]:
     """
     Validate and fix SEO metadata.
@@ -165,6 +167,7 @@ def _validate_seo_metadata(
         seo_meta: Generated SEO metadata
         topic: Blog topic
         keywords: Target keywords
+        target_audience: Target audience from plan
         
     Returns:
         Validated SEO metadata
@@ -194,16 +197,20 @@ def _validate_seo_metadata(
         seo_meta["faq"] = []
         logger.warning("SEO: FAQ missing or invalid, using empty list")
     
+    # Add target_audience
+    seo_meta["target_audience"] = target_audience
+    
     return seo_meta
 
 
-def _create_fallback_seo_meta(topic: str, keywords: List[str]) -> Dict[str, Any]:
+def _create_fallback_seo_meta(topic: str, keywords: List[str], target_audience: str = "General audience") -> Dict[str, Any]:
     """
     Create fallback SEO metadata.
     
     Args:
         topic: Blog topic
         keywords: Target keywords
+        target_audience: Target audience for the blog
         
     Returns:
         Fallback SEO metadata
@@ -215,7 +222,8 @@ def _create_fallback_seo_meta(topic: str, keywords: List[str]) -> Dict[str, Any]
         "meta_description": f"Comprehensive guide to {topic}. Learn key concepts, best practices, and practical applications."[:160],
         "slug": _slugify(topic),
         "keywords": keywords[:5] if keywords else [topic.lower()],
-        "faq": []
+        "faq": [],
+        "target_audience": target_audience
     }
 
 

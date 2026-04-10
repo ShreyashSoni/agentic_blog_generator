@@ -54,6 +54,7 @@ title: "{seo_meta.get('meta_title', 'Blog Post')}"
 description: "{seo_meta.get('meta_description', '')}"
 keywords: [{keywords_str}]
 slug: "{slug}"
+target_audience: "{seo_meta.get('target_audience', 'General audience')}"
 date: {_get_current_date()}
 ---
 
