@@ -201,6 +201,26 @@ def format_keywords_for_wordpress(keywords: list) -> str:
     return str(keywords)
 
 
+def combine_frontmatter(metadata: Dict[str, Any], content: str) -> str:
+    """
+    Combine YAML frontmatter and content into a complete markdown file.
+    
+    Args:
+        metadata: Dictionary of frontmatter metadata
+        content: Blog content body
+        
+    Returns:
+        Complete markdown string with frontmatter
+    """
+    # Convert metadata to YAML
+    yaml_str = yaml.dump(metadata, allow_unicode=True, default_flow_style=False, sort_keys=False)
+    
+    # Combine with frontmatter delimiters
+    full_content = f"---\n{yaml_str}---\n\n{content}"
+    
+    return full_content
+
+
 def extract_faq_section(content: str) -> Optional[str]:
     """
     Extract the FAQ section from blog content if present.
