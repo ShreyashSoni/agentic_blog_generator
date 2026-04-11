@@ -45,7 +45,6 @@ chroma_db/
 
 # Output Files
 outputs/*.md
-!outputs/.gitkeep
 
 # Logs
 *.log
@@ -67,3 +66,4 @@ plans/
 
 # output blogs
 my_blogs/
+outputs/
