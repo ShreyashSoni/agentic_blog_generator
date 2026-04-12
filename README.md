@@ -2,7 +2,7 @@
 
 A production-ready multi-agent blog generation system using **LangGraph** that autonomously creates high-quality blog content through specialized AI agents working in parallel.
 
-[![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Python](https://img.shields.io/badge/Python-3.13+-blue.svg)](https://www.python.org/downloads/)
 [![LangGraph](https://img.shields.io/badge/LangGraph-Latest-green.svg)](https://github.com/langchain-ai/langgraph)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -128,22 +128,22 @@ TAVILY_API_KEY=your_tavily_api_key_here
 
 **Basic usage:**
 ```bash
-python app.py --topic "Introduction to Machine Learning"
+uv run app.py --topic "Introduction to Machine Learning"
 ```
 
 **Specify output directory:**
 ```bash
-python app.py --topic "RAG vs Fine-tuning" --output-dir my_blogs
+uv run app.py --topic "RAG vs Fine-tuning" --output-dir my_blogs
 ```
 
 **Enable verbose logging:**
 ```bash
-python app.py --topic "Python Best Practices" --verbose
+uv run app.py --topic "Python Best Practices" --verbose
 ```
 
 **Preview without saving:**
 ```bash
-python app.py --topic "Blockchain Technology" --no-save
+uv run app.py --topic "Blockchain Technology" --no-save
 ```
 
 ---
@@ -166,9 +166,10 @@ agentic_blog_generator/
 │   ├── __init__.py
 │   └── vector_store.py         # ChromaDB wrapper
 │
-├── services/                    # Publishing services
+├── services/                    # Service modules
 │   ├── __init__.py
 │   ├── markdown_parser.py      # Parse blog markdown files
+│   ├── editor_service.py       # On-demand editing service
 │   └── wordpress_publisher.py  # WordPress REST API client
 │
 ├── workflows/                   # LangGraph orchestration
@@ -181,16 +182,12 @@ agentic_blog_generator/
 │   └── editor.txt
 │
 ├── outputs/                     # Generated blog files
-│   └── .gitkeep
-│
-├── plans/                       # Architecture documentation
-│   ├── architecture.md
-│   ├── implementation_guide.md
-│   ├── technical_considerations.md
-│   └── wordpress_publishing_plan.md
+│   ├── .gitkeep
+│   └── edited_blogs/           # Edited blog versions
 │
 ├── state.py                     # BlogState TypedDict definition
 ├── app.py                       # CLI entry point for blog generation
+├── edit_blog.py                 # CLI for on-demand editing
 ├── publish_to_wordpress.py      # CLI for WordPress publishing
 ├── requirements.txt             # Python dependencies
 ├── .env.example                 # Environment variable template
@@ -252,7 +249,7 @@ Writers use Retrieval-Augmented Generation:
 
 **Input:**
 ```bash
-python app.py --topic "Understanding RAG in LLMs"
+uv run app.py --topic "Understanding RAG in LLMs"
 ```
 
 **Generated Blog:**
@@ -391,7 +388,7 @@ Once you've generated a blog post, you can publish it directly to your WordPress
 
 3. **Install Dependencies** (if not already installed)
    ```bash
-   pip install -r requirements.txt
+   uv pip install -r requirements.txt
    ```
 
 ### Usage
@@ -399,19 +396,19 @@ Once you've generated a blog post, you can publish it directly to your WordPress
 #### Publish Single Blog as Draft
 
 ```bash
-python publish_to_wordpress.py --file outputs/my-blog.md
+uv run publish_to_wordpress.py --file outputs/my-blog.md
 ```
 
 #### Publish as Published Post
 
 ```bash
-python publish_to_wordpress.py --file outputs/my-blog.md --status publish
+uv run publish_to_wordpress.py --file outputs/my-blog.md --status publish
 ```
 
 #### Publish with Categories and Tags
 
 ```bash
-python publish_to_wordpress.py --file outputs/my-blog.md \
+uv run publish_to_wordpress.py --file outputs/my-blog.md \
     --categories "Technology,AI" \
     --tags "machine-learning,python,tutorial"
 ```
@@ -421,13 +418,13 @@ python publish_to_wordpress.py --file outputs/my-blog.md \
 #### Batch Publish Multiple Blogs
 
 ```bash
-python publish_to_wordpress.py --directory outputs/ --batch
+uv run publish_to_wordpress.py --directory outputs/ --batch
 ```
 
 #### Dry Run (Validate Without Publishing)
 
 ```bash
-python publish_to_wordpress.py --file outputs/my-blog.md --dry-run
+uv run publish_to_wordpress.py --file outputs/my-blog.md --dry-run
 ```
 
 ### Command Reference
@@ -499,6 +496,160 @@ Options:
 
 ---
 
+## ✏️ On-Demand Blog Editing
+
+After generating a blog post, you can re-edit it using the same editor logic without regenerating the entire content. This is useful for refining blogs, adjusting tone, or improving quality.
+
+### Overview
+
+The on-demand editing service:
+- ✅ Reuses the same editor agent from the main workflow
+- ✅ Preserves original frontmatter metadata
+- ✅ Extracts tone and audience from frontmatter
+- ✅ Adds `edited_date` timestamp
+- ✅ Saves edited versions to a separate directory
+
+### Usage
+
+#### Basic Editing
+
+```bash
+# Edit a generated blog
+uv run edit_blog.py --input outputs/my-blog.md
+```
+
+The edited blog will be saved to `outputs/edited_blogs/my-blog.md` by default.
+
+#### Custom Output Directory
+
+```bash
+uv run edit_blog.py -i outputs/my-blog.md -o custom_output/
+```
+
+#### Specify LLM Provider and Model
+
+```bash
+# Use OpenAI
+uv run edit_blog.py -i blog.md --provider openai --model gpt-4
+
+# Use Anthropic
+uv run edit_blog.py -i blog.md --provider anthropic --model claude-3-opus-20240229
+```
+
+#### Show Detailed Statistics
+
+```bash
+uv run edit_blog.py -i blog.md --stats
+```
+
+This will display:
+- Original word count
+- Edited word count
+- Percentage change
+- Edit timestamp
+
+#### Verbose Mode
+
+```bash
+uv run edit_blog.py -i blog.md --verbose
+```
+
+### Command Reference
+
+```
+Options:
+  --input, -i FILE        Path to markdown file to edit (required)
+  --output-dir, -o DIR    Output directory (default: outputs/edited_blogs)
+  --provider PROVIDER     LLM provider: openai or anthropic
+  --model MODEL           Specific model name
+  --stats, -s            Show detailed editing statistics
+  --verbose, -v          Enable verbose logging
+  --no-preserve-date     Don't preserve original date in frontmatter
+```
+
+### Example Output
+
+```
+======================================================================
+🤖 ON-DEMAND BLOG EDITING SERVICE
+======================================================================
+
+📄 Input File: outputs/understanding-rag-in-llms.md
+📁 Output Directory: outputs/edited_blogs
+
+======================================================================
+
+⏳ Editing blog... This may take a moment.
+
+✅ Blog successfully edited!
+📝 Saved to: outputs/edited_blogs/understanding-rag-in-llms.md
+
+======================================================================
+📊 EDITING STATISTICS
+======================================================================
+
+📝 Title: Understanding RAG: A Complete Guide
+📅 Edited: 2024-01-15 14:30:22
+
+📈 Word Count:
+  • Original: 2847 words
+  • Edited: 2923 words
+  • Change: +2.7%
+
+======================================================================
+
+✨ Editing completed successfully!
+```
+
+### Metadata Updates
+
+The edited blog's frontmatter will include:
+- `edited_date`: Timestamp of when editing was performed
+- `original_date`: Preserved original publication date
+- `date`: Updated to current date
+
+Example frontmatter:
+```yaml
+---
+title: "Understanding RAG: A Complete Guide"
+description: "Learn how RAG enhances LLMs..."
+keywords: [RAG, LLM, retrieval]
+slug: "understanding-rag-in-llms"
+date: 2024-01-16
+original_date: 2024-01-15
+edited_date: 2024-01-16 14:30:22
+---
+```
+
+### Use Cases
+
+- **Refine Quality**: Improve clarity and flow of generated content
+- **Adjust Tone**: Change formality or technical depth
+- **Fix Issues**: Correct errors or improve specific sections
+- **Iterative Improvement**: Multiple editing passes for best results
+- **A/B Testing**: Generate edited versions with different parameters
+
+### Programmatic Usage
+
+You can also use the editing service programmatically:
+
+```python
+from services.editor_service import edit_blog_file, get_editing_stats
+
+# Edit a blog
+output_path = edit_blog_file(
+    input_path="outputs/my-blog.md",
+    output_dir="outputs/edited_blogs",
+    llm_provider="anthropic",
+    model_name="claude-3-opus-20240229"
+)
+
+# Get statistics
+stats = get_editing_stats("outputs/my-blog.md", output_path)
+print(f"Word change: {stats['word_change_percent']}%")
+```
+
+
 ## 📈 Future Enhancements
 
 Potential improvements:
@@ -508,7 +659,7 @@ Potential improvements:
 - [ ] Hallucination detection layer
 - [ ] Caching for research results
 - [ ] Batch processing from CSV
-- [ ] Image generation with DALL-E
+- [ ] Image generation with (maybe nanobanana)
 - [ ] Multi-language support
 - [ ] Custom tone/style templates
 - [ ] WordPress featured image auto-upload
