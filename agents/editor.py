@@ -101,9 +101,17 @@ def editor_node(state: Dict[str, Any]) -> Dict[str, Any]:
         edited_content = ""
 
         for chunk in response:
-            edited_content += chunk.content if hasattr(chunk, 'content') else str(chunk)
-        
-        # edited_content = response.content if isinstance(response.content, str) else str(response.content)
+            if hasattr(chunk, 'content'):
+                content_chunk = chunk.content
+                # Handle both string and list responses
+                if isinstance(content_chunk, str):
+                    edited_content += content_chunk
+                elif isinstance(content_chunk, list):
+                    edited_content += ''.join(str(item) for item in content_chunk)
+                else:
+                    edited_content += str(content_chunk)
+            else:
+                edited_content += str(chunk)
         
         # Validate edited content
         word_count = len(edited_content.split())
@@ -119,7 +127,7 @@ def editor_node(state: Dict[str, Any]) -> Dict[str, Any]:
         edited_content = draft
     
     # Update state
-    state["edited"] = edited_content
+    state["edited"] = edited_content.strip()
     
     logger.info("Editor: Content editing completed")
     return state
