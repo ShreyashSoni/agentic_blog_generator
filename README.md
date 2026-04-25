@@ -70,6 +70,7 @@ graph TB
 - ✅ **RAG Integration**: Context-aware writing using vector database
 - ✅ **Web Research**: Real-time web search via Tavily API
 - ✅ **SEO Optimization**: Auto-generated metadata, keywords, and FAQ
+- ✅ **Social Media Content**: Auto-generate Twitter threads and LinkedIn posts
 - ✅ **WordPress Publishing**: One-command publishing to WordPress as drafts
 - ✅ **State Management**: Shared BlogState flows through all agents
 - ✅ **Error Handling**: Graceful fallbacks and retry logic
@@ -81,6 +82,7 @@ graph TB
 - ❓ Auto-generated FAQ sections
 - 📊 Keyword density analysis
 - 🎯 Audience-appropriate tone
+- 📱 Social media content (Twitter threads + LinkedIn posts)
 - 📤 Direct WordPress publishing with categories and tags
 
 ---
@@ -160,7 +162,8 @@ agentic_blog_generator/
 │   ├── outline.py              # Generates section outline
 │   ├── writer.py               # Writes individual sections (RAG)
 │   ├── editor.py               # Polishes final content
-│   └── seo.py                  # Generates SEO metadata
+│   ├── seo.py                  # Generates SEO metadata
+│   └── social_media.py         # Generates social media content
 │
 ├── memory/                      # Vector store management
 │   ├── __init__.py
@@ -170,6 +173,7 @@ agentic_blog_generator/
 │   ├── __init__.py
 │   ├── markdown_parser.py      # Parse blog markdown files
 │   ├── editor_service.py       # On-demand editing service
+│   ├── social_media_service.py # Social media content service
 │   └── wordpress_publisher.py  # WordPress REST API client
 │
 ├── workflows/                   # LangGraph orchestration
@@ -179,15 +183,21 @@ agentic_blog_generator/
 ├── prompts/                     # LLM prompt templates
 │   ├── planner.txt
 │   ├── writer.txt
-│   └── editor.txt
+│   ├── editor.txt
+│   ├── social_media_twitter.txt
+│   ├── social_media_linkedin.txt
+│   ├── social_media_images.txt
+│   └── social_media_hashtags.txt
 │
 ├── outputs/                     # Generated blog files
 │   ├── .gitkeep
-│   └── edited_blogs/           # Edited blog versions
+│   ├── edited_blogs/           # Edited blog versions
+│   └── social_media/           # Social media content files
 │
 ├── state.py                     # BlogState TypedDict definition
 ├── app.py                       # CLI entry point for blog generation
 ├── edit_blog.py                 # CLI for on-demand editing
+├── generate_social_media.py     # CLI for social media content generation
 ├── publish_to_wordpress.py      # CLI for WordPress publishing
 ├── requirements.txt             # Python dependencies
 ├── .env.example                 # Environment variable template
@@ -649,6 +659,331 @@ stats = get_editing_stats("outputs/my-blog.md", output_path)
 print(f"Word change: {stats['word_change_percent']}%")
 ```
 
+---
+
+## 🚀 Social Media Content Generation
+
+After generating a blog post, you can create engaging social media content (Twitter threads and LinkedIn posts) from it with a single command. This feature generates platform-optimized content with hashtags, emojis, and image suggestions.
+
+### Overview
+
+The social media content generator:
+- ✅ Creates Twitter threads (5-8 tweets) with proper character limits
+- ✅ Generates 3 LinkedIn post variations (Technical, Business, Story-based)
+- ✅ Suggests images and visual content for both platforms
+- ✅ Generates relevant hashtags for maximum reach
+- ✅ Includes emojis for engagement
+- ✅ Saves all content to a single markdown file per blog
+
+### Usage
+
+#### Generate Social Media Content
+
+```bash
+# Basic usage
+uv run generate_social_media.py --input outputs/my-blog.md
+
+# Output saved to: outputs/social_media/my-blog-social.md
+```
+
+#### Custom Output Directory
+
+```bash
+uv run generate_social_media.py -i outputs/blog.md -o custom_dir/
+```
+
+#### Specify LLM Provider
+
+```bash
+# Use OpenAI
+uv run generate_social_media.py -i blog.md --provider openai --model gpt-4
+
+# Use Anthropic
+uv run generate_social_media.py -i blog.md --provider anthropic
+```
+
+#### Batch Processing
+
+```bash
+# Generate for all blogs in directory
+uv run generate_social_media.py --directory outputs/ --batch
+```
+
+#### Dry Run (Validation Only)
+
+```bash
+uv run generate_social_media.py -i blog.md --dry-run
+```
+
+#### Show Statistics
+
+```bash
+uv run generate_social_media.py -i blog.md --stats
+```
+
+### Command Reference
+
+```
+Options:
+  --input, -i FILE        Path to blog markdown file
+  --directory, -d DIR     Directory with blogs (use with --batch)
+  --output-dir, -o DIR    Output directory (default: outputs/social_media)
+  --provider PROVIDER     LLM provider: openai or anthropic
+  --model MODEL          Specific model name
+  --batch                Enable batch processing
+  --dry-run              Validate without generating
+  --stats, -s            Show detailed statistics
+  --verbose, -v          Enable verbose logging
+```
+
+### Generated Content Structure
+
+For each blog, a markdown file is created containing:
+
+#### 🐦 Twitter Thread
+- **5-8 tweets** forming a cohesive narrative
+- **Character count** for each tweet (max 280)
+- **Numbered thread** (1/7, 2/7, etc.)
+- **Hashtags** strategically placed (1-2 per tweet)
+- **Emojis** for visual breaks
+- **Image suggestions** for key tweets
+- **Hook tweet** to grab attention
+- **CTA tweet** with link to blog
+
+#### 💼 LinkedIn Posts (3 Variations)
+
+**Variation 1: Technical Deep-Dive**
+- For engineers and technical professionals
+- Focuses on implementation and architecture
+- Technical terminology and details
+- Code concepts and methodology
+
+**Variation 2: Business Value Focus**
+- For decision-makers and executives
+- Emphasizes ROI and business outcomes
+- Success metrics and competitive advantages
+- Strategic value proposition
+
+**Variation 3: Story-Based / Educational**
+- For broader professional audience
+- Personal experience or case study narrative
+- Lessons learned and actionable insights
+- Accessible language with practical tips
+
+Each variation includes:
+- **1,300-2,000 characters** for optimal engagement
+- **5-7 hashtags** (mix of broad and niche)
+- **Emojis** as bullet points and visual separators
+- **Bold key phrases** for scannability
+- **Compelling hook** in first 2-3 lines
+- **Clear call-to-action**
+- **Image suggestion**
+
+#### 🖼️ Image Suggestions
+
+For both platforms:
+- **Visual concepts** (infographics, diagrams, charts)
+- **Detailed descriptions** with elements to include
+- **Color schemes** and design guidelines
+- **Optimal dimensions** (Twitter: 1200x675px, LinkedIn: 1200x627px)
+- **Suggested tools** (Canva, Figma, Adobe)
+- **Alt text** for accessibility
+- **Purpose** of each image
+
+#### 🔖 Hashtags
+
+Platform-specific hashtag strategies:
+- **Twitter**: 1-2 per tweet, mix of trending and niche
+- **LinkedIn**: 5-7 per post, including industry and job function tags
+- **Detailed table** with hashtag relevance scores
+- **Distribution strategies** for maximum reach
+
+### Example Output
+
+```markdown
+---
+blog_title: "Understanding RAG: A Complete Guide"
+blog_slug: "understanding-rag"
+generated_at: "2024-01-15T14:30:22"
+platforms:
+  - twitter
+  - linkedin
+---
+
+# Social Media Content - Understanding RAG: A Complete Guide
+
+## 📱 Twitter Thread
+
+### Tweet 1/7
+
+🧵 Ever wondered how AI systems stay updated with latest info without retraining?
+
+Let me explain RAG (Retrieval-Augmented Generation) - the technique powering modern AI assistants 🤖
+
+[Character count: 187/280]
+[Suggested image: RAG architecture diagram]
+
+---
+
+### Tweet 2/7
+
+RAG combines 2 powerful concepts:
+✅ Information retrieval (finding relevant docs)
+✅ Generation (creating contextual responses)
+
+Think of it as giving your AI a smart library card 📚
+
+#RAG #MachineLearning
+
+[Character count: 224/280]
+
+---
+
+[... 5 more tweets ...]
+
+## 💼 LinkedIn Posts (3 Variations)
+
+### Variation 1: Technical Deep-Dive
+
+**Understanding RAG: The Secret Behind Modern AI Systems**
+
+Retrieval-Augmented Generation (RAG) is transforming how we build AI applications...
+
+[Full post with technical details]
+
+*[Word count: 247 | Character count: 1,542/3000]*
+*[Hashtags: #AI, #MachineLearning, #RAG, #VectorDatabase, #TechLeadership]*
+
+---
+
+### Variation 2: Business Value Focus
+
+**Why Every Business Should Care About RAG Technology**
+
+If you're building AI-powered products, RAG might be your competitive advantage...
+
+[Full post focused on business value]
+
+---
+
+### Variation 3: Story-Based
+
+**I Built a RAG System in 2 Days—Here's What I Learned**
+
+Last week, I challenged myself to build a production-ready RAG system...
+
+[Personal narrative with lessons learned]
+
+---
+
+## 🖼️ Image Suggestions
+
+### Twitter Images
+
+**Image for Tweet 1**: Infographic
+- Description: Clean RAG architecture diagram showing data flow
+- Dimensions: 1200x675px
+- Elements: User query, Retrieval system, Vector DB, LLM, Response
+- Color scheme: Blue (#1DA1F2) and white
+- Suggested tools: Canva, Figma
+
+[... more image suggestions ...]
+
+## 🔖 Hashtags Summary
+
+### Twitter Hashtags
+**Recommended per tweet**: 2
+
+**Primary**: #AI, #MachineLearning
+**Secondary**: #RAG, #NLP, #VectorDB
+**Trending**: #TechTwitter, #100DaysOfCode
+
+### LinkedIn Hashtags
+**Recommended per post**: 6
+
+**Primary**: #ArtificialIntelligence, #MachineLearning
+**Technical**: #RAG, #NLP, #DataScience
+**Industry**: #Technology, #Innovation
+**Audience**: #SoftwareEngineering, #DataEngineering
+```
+
+### Output Statistics
+
+After generation, you'll see:
+
+```
+======================================================================
+📊 GENERATION STATISTICS
+======================================================================
+
+📝 Blog: Understanding RAG: A Complete Guide
+🕒 Generated: 2024-01-15T14:30:22
+
+🐦 Twitter Thread:
+   • Total tweets: 7
+   • Avg characters: 230
+   • Hashtags used: 8
+
+💼 LinkedIn Posts:
+   • Variations: 3
+   • Avg characters: 1,556
+
+🖼️  Images:
+   • Twitter images: 3
+   • LinkedIn images: 3
+
+======================================================================
+```
+
+### Use Cases
+
+- **Announce new blog posts** on social media
+- **Repurpose content** for multiple platforms
+- **A/B test** different post variations
+- **Save time** creating social media content
+- **Maintain consistency** across channels
+- **Optimize engagement** with platform-specific formatting
+
+### Programmatic Usage
+
+```python
+from services.social_media_service import generate_from_blog_file
+
+# Generate social media content
+output_path = generate_from_blog_file(
+    blog_path="outputs/my-blog.md",
+    output_dir="outputs/social_media",
+    llm_provider="anthropic",
+    model_name="claude-3-opus-20240229"
+)
+
+print(f"Social media content saved to: {output_path}")
+```
+
+### Best Practices
+
+**For Twitter Threads:**
+- Start with a compelling hook (question, statistic, bold claim)
+- Keep tweets 220-250 characters for retweet space
+- Use emojis sparingly but effectively
+- Number your threads for easy navigation
+- End with a clear call-to-action
+
+**For LinkedIn Posts:**
+- First 2-3 lines are critical (preview text)
+- Use line breaks generously for readability
+- Include specific numbers and examples
+- Ask questions to encourage comments
+- Tag relevant people or companies when appropriate
+
+**For Images:**
+- Use consistent branding and color schemes
+- Ensure text is readable on mobile
+- Include alt text for accessibility
+- Test designs at actual display sizes
+- Keep visuals clean and uncluttered
+
+---
 
 ## 📈 Future Enhancements
 
@@ -659,9 +994,13 @@ Potential improvements:
 - [ ] Hallucination detection layer
 - [ ] Caching for research results
 - [ ] Batch processing from CSV
-- [ ] Image generation with (maybe nanobanana)
+- [ ] Image generation integration
 - [ ] Multi-language support
 - [ ] Custom tone/style templates
+- [x] **Social media content generation** (Twitter + LinkedIn)
+- [ ] Direct social media posting APIs (Buffer, Hootsuite)
+- [ ] Instagram and Facebook content variations
+- [ ] Social media scheduling recommendations
 - [ ] WordPress featured image auto-upload
 - [ ] Update existing WordPress posts
 - [ ] Schedule WordPress posts for future publishing
