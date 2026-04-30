@@ -92,7 +92,7 @@ def planner_node(state: Dict[str, Any]) -> Dict[str, Any]:
         
         # Add default tone if not present
         if "tone" not in plan:
-            plan["tone"] = "professional"
+            plan["tone"] = "technical"
         
         logger.info(f"Planner: Generated plan with {len(plan['section_titles'])} sections")
         logger.info(f"Planner: Target audience - {plan['target_audience']}")
@@ -163,5 +163,5 @@ def _create_default_plan(topic: str) -> Dict[str, Any]:
             "Conclusion"
         ],
         "keywords": [word.lower() for word in topic.split()[:5]],
-        "tone": "professional"
+        "tone": "technical"
     }

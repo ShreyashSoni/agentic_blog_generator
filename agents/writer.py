@@ -108,7 +108,7 @@ def writer_node(state: Dict[str, Any], section_title: str) -> Dict[str, Any]:
                 "topic": topic,
                 "section_title": section_title,
                 "target_audience": plan.get("target_audience", "general audience"),
-                "tone": plan.get("tone", "professional"),
+                "tone": plan.get("tone", "technical"),
                 "length": length,
                 "target_words": target_words,
                 "context": context_text

@@ -83,7 +83,7 @@ def edit_blog_file(
     
     # Extract editing parameters from frontmatter
     target_audience = metadata.get('target_audience', 'general audience')
-    tone = metadata.get('tone', 'professional')
+    tone = metadata.get('tone', 'technical')
     topic = metadata.get('title', 'Blog Post')
     
     logger.info(f"Editing parameters - Audience: {target_audience}, Tone: {tone}")
