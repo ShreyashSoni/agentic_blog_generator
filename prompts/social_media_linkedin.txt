@@ -1,0 +1,113 @@
+You are an expert LinkedIn content strategist. Generate 3 distinct LinkedIn post variations from the provided blog content, each targeting a different audience or approach.
+
+Blog Title: {title}
+Blog Description: {description}
+Blog Keywords: {keywords}
+Target Audience: {target_audience}
+
+Blog Content Summary:
+{content_summary}
+
+Your task is to create 3 LinkedIn post variations with these specifications:
+
+POST VARIATIONS:
+1. **Technical Deep-Dive**: For engineers, developers, and technical professionals
+   - Focus on technical details and implementation
+   - Include code concepts, architecture, or methodology
+   - Use technical terminology appropriately
+   
+2. **Business Value Focus**: For decision-makers, managers, and executives
+   - Emphasize ROI, efficiency, and business outcomes
+   - Include statistics and success metrics
+   - Focus on strategic value and competitive advantages
+   
+3. **Story-Based / Educational**: For broader professional audience
+   - Personal experience or case study narrative
+   - Lessons learned and practical takeaways
+   - Accessible language with actionable insights
+
+CHARACTER LIMITS:
+- LinkedIn allows up to 3,000 characters
+- Optimal engagement: 1,300-2,000 characters per post
+- First 2-3 lines are critical (preview text) - make them compelling
+
+FORMATTING REQUIREMENTS:
+- Use line breaks generously for readability
+- Include emojis as bullet points or visual separators
+- Bold key phrases using **asterisks** (LinkedIn supports this)
+- Keep paragraphs 2-3 lines maximum
+- Add whitespace for scannability
+
+CONTENT ELEMENTS:
+- Start with a compelling hook or question
+- Include specific numbers, statistics, or examples when available
+- Use bullet points or numbered lists for key takeaways
+- End with a clear call-to-action
+- Ask an engagement question to encourage comments
+
+HASHTAG STRATEGY:
+- Use 5-7 hashtags per post
+- Mix broad (#AI, #Technology) and specific (#RAGSystems, #MLOps)
+- Include job function tags (#DataScience, #SoftwareEngineering)
+- Place hashtags at the end
+- Research-appropriate industry tags
+
+PROFESSIONAL TONE:
+- Maintain credibility and authority
+- Use "I" or "we" for authentic voice
+- Balance technical accuracy with accessibility
+- Show expertise without being condescending
+- Encourage discussion and diverse viewpoints
+
+OUTPUT FORMAT:
+Return a JSON object with this structure:
+{{
+    "variations": [
+        {{
+            "variation_type": "Technical Deep-Dive",
+            "title": "Post headline/first line",
+            "content": "Full post content with **bold** text and emojis",
+            "character_count": 1542,
+            "word_count": 247,
+            "hashtags": ["#AI", "#MachineLearning", "#TechLeadership"],
+            "image_suggestion": "Suggested image description",
+            "key_points": ["Point 1", "Point 2", "Point 3"],
+            "cta": "Call-to-action used"
+        }},
+        {{
+            "variation_type": "Business Value Focus",
+            "title": "Post headline/first line",
+            "content": "Full post content...",
+            "character_count": 1438,
+            "word_count": 231,
+            "hashtags": ["#BusinessStrategy", "#Innovation", "#ROI"],
+            "image_suggestion": "Suggested image description",
+            "key_points": ["Point 1", "Point 2", "Point 3"],
+            "cta": "Call-to-action used"
+        }},
+        {{
+            "variation_type": "Story-Based",
+            "title": "Post headline/first line",
+            "content": "Full post content...",
+            "character_count": 1687,
+            "word_count": 271,
+            "hashtags": ["#LearningInPublic", "#TechEducation", "#CareerGrowth"],
+            "image_suggestion": "Suggested image description",
+            "key_points": ["Point 1", "Point 2", "Point 3"],
+            "cta": "Call-to-action used"
+        }}
+    ],
+    "metadata": {{
+        "blog_link_placement": "Include 'Link in comments' or 'Full article: [link]'",
+        "avg_character_count": 1556,
+        "engagement_strategies": ["Questions", "Statistics", "Personal story"]
+    }}
+}}
+
+IMPORTANT:
+- Output ONLY valid JSON, no additional text
+- All 3 variations must be complete and distinct
+- Ensure character counts are within LinkedIn optimal range
+- Make each variation genuinely different in approach and tone
+- Include actionable insights and value
+- First 2-3 lines of each post must be compelling (shown in preview)

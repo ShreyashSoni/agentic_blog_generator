@@ -95,7 +95,7 @@ def editor_node(state: Dict[str, Any]) -> Dict[str, Any]:
             "topic": topic,
             "draft": draft,
             "target_audience": plan.get("target_audience", "general audience"),
-            "tone": plan.get("tone", "professional")
+            "tone": plan.get("tone", "technical")
         })
 
         edited_content = ""

@@ -42,7 +42,7 @@ def get_llm(provider: str | Any = "anthropic",
             base_url=os.getenv("ANTHROPIC_BASE_URL"),
             default_headers={"Authorization": f"Bearer {os.getenv("TOKEN")}"},
             temperature=temperature,
-            timeout=30,
+            timeout=120,
             max_tokens=25000, # type: ignore
             stop=None #['<exit>'] # output stops a lot of times at the word "compl'exit'y"
         )
