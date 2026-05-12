@@ -36,10 +36,13 @@ def planner_node(state: Dict[str, Any]) -> Dict[str, Any]:
     Planner agent: Analyzes topic and creates structured plan.
     
     This is a LangGraph node that reads the topic from state and generates
-    a comprehensive blog plan.
+    a comprehensive blog plan. Enhanced to handle user feedback and regeneration.
     
     Input:
         state["topic"]: The blog topic
+        state["length"]: Blog complexity ('simple' or 'complex')
+        state["user_feedback"]["plan"]: Optional user feedback for revision
+        state["approval_attempt_count"]["plan"]: Current attempt number
         
     Output:
         state["plan"]: Structured plan dictionary
@@ -52,23 +55,42 @@ def planner_node(state: Dict[str, Any]) -> Dict[str, Any]:
     """
     topic = state["topic"]
     length = state.get("length", "complex")
-    logger.info(f"Planner: Analyzing topic - '{topic}' (length: {length})")
+    
+    # Check for user feedback from previous rejection
+    user_feedback = state.get("user_feedback", {}).get("plan", "")
+    attempts = state.get("approval_attempt_count", {}).get("plan", 0)
+    
+    if user_feedback and attempts > 0:
+        logger.info(f"Planner: Incorporating user feedback (attempt {attempts})")
+        logger.info(f"Feedback: {user_feedback}")
+    else:
+        logger.info(f"Planner: Analyzing topic - '{topic}' (length: {length})")
 
     llm = get_llm(provider=state.get("llm_provider"),
                   model_name=state.get("model_name"),
                   temperature=0.7)
     
-    # Load prompt template
+    # Load and modify prompt template based on feedback
     try:
-        prompt_template = load_prompt("planner.txt")
+        base_prompt_template = load_prompt("planner.txt")
+        prompt_template = _enhance_prompt_with_feedback(base_prompt_template, user_feedback, attempts)
     except FileNotFoundError:
         logger.warning("Planner prompt template not found, using default")
-        prompt_template = _get_default_prompt_template()
+        base_prompt_template = _get_default_prompt_template()
+        prompt_template = _enhance_prompt_with_feedback(base_prompt_template, user_feedback, attempts)
+    
+    # Determine input variables based on whether we have feedback
+    if user_feedback:
+        input_variables = ["topic", "length", "user_feedback"]
+        prompt_values = {"topic": topic, "length": length, "user_feedback": user_feedback}
+    else:
+        input_variables = ["topic", "length"]
+        prompt_values = {"topic": topic, "length": length}
     
     # Create prompt
     prompt = PromptTemplate(
         template=prompt_template,
-        input_variables=["topic", "length"]
+        input_variables=input_variables
     )
     
     # Create chain
@@ -76,7 +98,7 @@ def planner_node(state: Dict[str, Any]) -> Dict[str, Any]:
     
     # Generate plan
     try:
-        response = chain.invoke({"topic": topic, "length": length})
+        response = chain.invoke(prompt_values)
         
         # Parse JSON response
         content = response.content if isinstance(response.content, str) else str(response.content)
@@ -94,17 +116,42 @@ def planner_node(state: Dict[str, Any]) -> Dict[str, Any]:
         if "tone" not in plan:
             plan["tone"] = "technical"
         
+        # Validate that plan addresses user feedback (if any)
+        if user_feedback:
+            addresses_feedback = _validate_plan_against_feedback(plan, user_feedback)
+            if addresses_feedback:
+                logger.info(f"Planner: Plan appears to address user feedback")
+            else:
+                logger.warning(f"Planner: Plan may not fully address user feedback")
+            
+            # Log feedback incorporation context
+            context = _get_revision_context(attempts, user_feedback)
+            logger.info(f"Planner: {context}")
+        
         logger.info(f"Planner: Generated plan with {len(plan['section_titles'])} sections")
         logger.info(f"Planner: Target audience - {plan['target_audience']}")
         
+        # Add metadata about revision process
+        if attempts > 0:
+            plan["_revision_metadata"] = {
+                "attempt_number": attempts,
+                "had_feedback": bool(user_feedback),
+                "feedback_summary": user_feedback[:100] + "..." if len(user_feedback) > 100 else user_feedback
+            }
+        
     except json.JSONDecodeError as e:
         logger.error(f"Failed to parse plan JSON: {e}")
-        # Fallback to default plan
+        logger.error(f"Raw response content: {content[:200]}...")
+        # Fallback to default plan with feedback context
         plan = _create_default_plan(topic)
+        if user_feedback:
+            plan["_fallback_reason"] = f"JSON parse error with feedback: {user_feedback[:50]}..."
     except Exception as e:
         logger.error(f"Planner error: {e}")
-        # Fallback to default plan
+        # Fallback to default plan with feedback context
         plan = _create_default_plan(topic)
+        if user_feedback:
+            plan["_fallback_reason"] = f"Generation error with feedback: {user_feedback[:50]}..."
     
     # Update state
     state["plan"] = plan
@@ -165,3 +212,99 @@ def _create_default_plan(topic: str) -> Dict[str, Any]:
         "keywords": [word.lower() for word in topic.split()[:5]],
         "tone": "technical"
     }
+
+
+def _enhance_prompt_with_feedback(base_template: str, user_feedback: str, attempts: int) -> str:
+    """
+    Enhance prompt template with user feedback for plan revision.
+    
+    Args:
+        base_template: Base prompt template
+        user_feedback: User feedback from previous rejection
+        attempts: Current attempt number
+        
+    Returns:
+        Enhanced prompt template with feedback instructions
+    """
+    if not user_feedback or attempts <= 0:
+        return base_template
+    
+    # Add feedback section to the prompt
+    feedback_instruction = f"""
+
+IMPORTANT REVISION INSTRUCTIONS:
+This is revision attempt {attempts}. The user has provided the following feedback on the previous plan:
+
+User Feedback: "{user_feedback}"
+
+Please carefully incorporate this feedback and generate a revised plan that addresses the user's concerns and requirements. Make sure to:
+
+1. Address each point in the feedback specifically
+2. Maintain all the original requirements (JSON format, required fields, etc.)
+3. Improve upon the previous plan based on the feedback
+4. Ensure the revision is substantial and meaningful
+
+Previous feedback must be incorporated: {user_feedback}
+"""
+    
+    # Check if template has user_feedback variable, if not add it
+    if "{user_feedback}" not in base_template:
+        # Insert feedback instruction before the final instruction line
+        if "Output ONLY valid JSON" in base_template:
+            enhanced_template = base_template.replace(
+                "Output ONLY valid JSON, no additional text.",
+                f"{feedback_instruction}\n\nOutput ONLY valid JSON, no additional text."
+            )
+        else:
+            enhanced_template = base_template + feedback_instruction
+    else:
+        enhanced_template = base_template
+    
+    return enhanced_template
+
+
+def _get_revision_context(attempts: int, user_feedback: str) -> str:
+    """
+    Get context string for revision attempts.
+    
+    Args:
+        attempts: Current attempt number
+        user_feedback: User feedback
+        
+    Returns:
+        Context string for logging and prompts
+    """
+    if attempts <= 1:
+        return "Initial plan generation"
+    else:
+        return f"Revision attempt {attempts} based on feedback: {user_feedback[:100]}..."
+
+
+def _validate_plan_against_feedback(plan: Dict[str, Any], user_feedback: str) -> bool:
+    """
+    Basic validation that plan addresses user feedback.
+    
+    Args:
+        plan: Generated plan dictionary
+        user_feedback: User feedback to validate against
+        
+    Returns:
+        True if plan seems to address feedback, False otherwise
+    """
+    if not user_feedback:
+        return True
+    
+    feedback_lower = user_feedback.lower()
+    plan_str = json.dumps(plan, default=str).lower()
+    
+    # Basic keyword matching to check if feedback concepts appear in plan
+    feedback_keywords = [
+        word.strip('.,!?') for word in feedback_lower.split()
+        if len(word) > 3 and word.isalpha()
+    ]
+    
+    matches = sum(1 for keyword in feedback_keywords if keyword in plan_str)
+    match_ratio = matches / len(feedback_keywords) if feedback_keywords else 1.0
+    
+    # Consider addressing feedback if at least 30% of keywords appear
+    return match_ratio >= 0.3
